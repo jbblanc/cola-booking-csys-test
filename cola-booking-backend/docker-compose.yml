@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  postgresql:
+    container_name: colabooking_postgresql
+    image: postgres:11.5
+    ports:
+      - 5431:5432
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - colabooking
+    restart: always
+
+  db_migration:
+    container_name: colabooking_dbmigration
+    image: node:14.15.5-alpine3.13
+
+    depends_on:
+      - postgresql
+
+    env_file:
+      - ./.env.local.docker
+
+    volumes:
+      - ./:/tmp/migrations
+
+    networks:
+      - colabooking
+    command: npm --prefix /tmp/migrations run migration-run
+
+    restart: on-failure
+
+  api:
+    image: colabooking_api
+    container_name: colabooking_api
+    build:
+      context: .
+      dockerfile: ./apps/cola-booking/Dockerfile
+    env_file:
+      - ./.env.local.docker
+    ports:
+      - 3005:3005
+    depends_on:
+      - db_migration
+    networks:
+      - colabooking
+    restart: always
+
+volumes:
+  postgresql_data:
+
+networks:
+  colabooking:

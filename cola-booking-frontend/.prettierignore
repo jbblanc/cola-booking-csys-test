@@ -1,0 +1,7 @@
+node_modules/**
+README.md
+*.yml
+.svelte-kit/**
+script/*
+static/**
+build/**

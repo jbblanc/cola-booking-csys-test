@@ -1,0 +1,173 @@
+stages:
+  - build
+  - deploy
+  - acceptance-test
+
+cache:
+  paths:
+    - node_modules/
+
+variables:
+  npm_config_cache: '$CI_PROJECT_DIR/.npm'
+  OWNER: cola-corp
+  PROJECT: cola-booking-backend
+  AWS_PROFILE: default
+  AWS_REGION: $AWS_DEFAULT_REGION
+  TYPEORM_SYNCHRONIZE: 'false'
+  LOGS_DIRNAME: /home/ec2-user/logs
+  LOGS_ROLLING_FILE_DATE_PATTERN: YYYY-MM-DD-HH
+  LOGS_EVENT_FILE_MAX_SIZE: 20m
+  LOGS_EVENT_FILE_RETENTION: 7d
+  LOGS_HTTP_FILE_MAX_SIZE: 20m
+  LOGS_HTTP_FILE_RETENTION: 7d
+  LOGS_EVENT_FILE_NAME: cola-booking-event-%DATE%.log
+  LOGS_HTTP_FILE_NAME: cola-booking-http-%DATE%.log
+  JWT_EXPIRATION: 2d
+
+.build:
+  image: node:14.15.5-alpine3.13
+  stage: build
+  tags: #runners tag
+    - aws-octave
+  before_script:
+    - npm install
+  script:
+    - npm run build cola-booking
+
+build-development:
+  extends: .build
+  environment:
+    name: development
+  only:
+    refs:
+      - development
+
+build-production:
+  extends: .build
+  environment:
+    name: production
+  only:
+    refs:
+      - main
+
+.deploy:
+  image: node:14.15.5-alpine3.13
+  stage: deploy
+  tags: #runners tag
+    - aws-octave
+  before_script:
+    - echo "Checking configuration & Building .env"
+    - touch .env
+    - echo "NODE_ENV=$TARGET_ENV" >> .env
+    - echo "PORT=$PORT" >> .env
+    - echo "CORS_ORIGIN=$CORS_ORIGIN" >> .env
+    - echo "AWS_PROFILE=$AWS_PROFILE" >> .env
+    - echo "AWS_REGION=$AWS_REGION" >> .env
+    - echo "LOGS_DIRNAME=$LOGS_DIRNAME" >> .env
+    - echo "LOGS_ROLLING_FILE_DATE_PATTERN=$LOGS_ROLLING_FILE_DATE_PATTERN" >> .env
+    - echo "LOGS_EVENT_FILE_MAX_SIZE=$LOGS_EVENT_FILE_MAX_SIZE" >> .env
+    - echo "LOGS_EVENT_FILE_RETENTION=$LOGS_EVENT_FILE_RETENTION" >> .env
+    - echo "LOGS_HTTP_FILE_MAX_SIZE=$LOGS_HTTP_FILE_MAX_SIZE" >> .env
+    - echo "LOGS_HTTP_FILE_RETENTION=$LOGS_HTTP_FILE_RETENTION" >> .env
+    - echo "LOGS_EVENT_FILE_NAME=$LOGS_EVENT_FILE_NAME" >> .env
+    - echo "LOGS_HTTP_FILE_NAME=$LOGS_HTTP_FILE_NAME" >> .env
+    - echo "POSTGRES_PORT=$POSTGRES_PORT" >> .env
+    - echo "POSTGRES_HOST=$POSTGRES_HOST" >> .env
+    - echo "POSTGRES_USER=$POSTGRES_USER" >> .env
+    - echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
+    - echo "POSTGRES_DB=$POSTGRES_DB" >> .env
+    - echo "POSTGRES_SCHEMA=$POSTGRES_SCHEMA" >> .env
+    - echo "TYPEORM_SYNCHRONIZE=$TYPEORM_SYNCHRONIZE" >> .env
+    - echo "COLA_BOOKING_API_BASE_URL=$COLA_BOOKING_API_BASE_URL" >> .env
+    - echo "JWT_SECRET=$JWT_SECRET" >> .env
+    - echo "JWT_EXPIRATION=$JWT_EXPIRATION" >> .env
+    - echo "COLA_DAY=$COLA_DAY" >> .env
+    - echo "TEST_ACCOUNT_PASSWORD=$TEST_ACCOUNT_PASSWORD" >> .env
+    - echo "Building project with proper env configuration"
+    #- npm i -g @nestjs/cli
+    - npm install
+    - npm run build cola-booking
+    - chmod +x ./scripts/before_deploy.sh
+    - ./scripts/before_deploy.sh
+  script:
+    #- cat .env
+    - npm run migration-run
+    - chmod +x ./scripts/deploy.sh
+    - ./scripts/deploy.sh
+
+deploy-development:
+  extends: .deploy
+  environment:
+    name: development
+    url: https:/dev-cola-booking.octave.co
+  only:
+    refs:
+      - development
+  variables:
+    TARGET_ENV: development
+    SERVER: $DEVELOPMENT_SERVER_PRIVATE_IP
+    PROCESS_NAME: $TARGET_ENV-$OWNER-$PROJECT
+    DEPLOY_PATH: ~/$TARGET_ENV/$OWNER/$PROJECT
+    PORT: 3099
+    CORS_ORIGIN: http://localhost.cola-booking.com:3000,http://local-www.cola-booking.com:3000,https://dev-cola-booking.octave.co
+    POSTGRES_PORT: 5432
+    POSTGRES_HOST: dev-studio-postgresql.cj8ilcwkg5ia.eu-west-3.rds.amazonaws.com
+    POSTGRES_USER: development_apparelo
+    POSTGRES_PASSWORD: $DEVELOPMENT_DB_PASSWORD
+    POSTGRES_DB: development-cola-booking
+    POSTGRES_SCHEMA: public
+    JWT_SECRET: $DEVELOPMENT_JWT_SECRET
+    COLA_BOOKING_API_BASE_URL: https://dev-cola-booking-api.octave.co
+    COLA_DAY: "2021-11-18"
+    TEST_ACCOUNT_PASSWORD: $DEVELOPMENT_TEST_ACCOUNT_PASSWORD
+
+deploy-production:
+  extends: .deploy
+  environment:
+    name: production
+    url: https://cola-booking.octave.co
+  only:
+    refs:
+      - main
+  variables:
+    TARGET_ENV: production
+    SERVER: $PRODUCTION_SERVER_PRIVATE_IP
+    PROCESS_NAME: $TARGET_ENV-$OWNER-$PROJECT
+    DEPLOY_PATH: ~/$TARGET_ENV/$OWNER/$PROJECT
+    PORT: 3099
+    CORS_ORIGIN: https://cola-booking.octave.co
+    POSTGRES_PORT: 5432
+    POSTGRES_HOST: prod-studio-postgresql.cj8ilcwkg5ia.eu-west-3.rds.amazonaws.com
+    POSTGRES_USER: production_apparelo_hydra
+    POSTGRES_PASSWORD: $PRODUCTION_DB_PASSWORD
+    POSTGRES_DB: cola-booking
+    POSTGRES_SCHEMA: public
+    JWT_SECRET: $PRODUCTION_JWT_SECRET
+    COLA_BOOKING_API_BASE_URL: https://cola-booking-api.octave.co
+    COLA_DAY: "2021-11-18"
+
+
+.acceptance:
+  image: node:14.15.5-alpine3.13
+  stage: acceptance-test
+  tags: #runners tag
+    - aws-octave
+  before_script:
+    - echo "#######"
+    - echo $COLA_BOOKING_API_BASE_URL
+    - echo "#######"
+    - npm install
+  script:
+    - npm run test:cucumber:cola_booking
+
+acceptance-development:
+  extends: .acceptance
+  environment:
+    name: development
+  only:
+    refs:
+      - development
+  variables:
+    COLA_BOOKING_API_BASE_URL: https://dev-cola-booking-api.octave.co
+    COLA_DAY: "2021-11-18"
+    TEST_ACCOUNT_PASSWORD: $DEVELOPMENT_TEST_ACCOUNT_PASSWORD

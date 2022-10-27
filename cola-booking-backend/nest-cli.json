@@ -1,0 +1,30 @@
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/cola-booking/src",
+  "monorepo": true,
+  "root": "apps/cola-booking",
+  "compilerOptions": {
+    "webpack": true,
+    "tsConfigPath": "apps/cola-booking/tsconfig.app.json"
+  },
+  "projects": {
+    "cola-booking": {
+      "type": "application",
+      "root": "apps/cola-booking",
+      "entryFile": "main",
+      "sourceRoot": "apps/cola-booking/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cola-booking/tsconfig.app.json"
+      }
+    },
+    "commons": {
+      "type": "library",
+      "root": "libs/commons",
+      "entryFile": "index",
+      "sourceRoot": "libs/commons/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/commons/tsconfig.lib.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+	"video": false,
+	"env": {
+		"base_url": "https://dev-cola-booking.octave.co",
+		"api_base_url": "https://dev-cola-booking-api.octave.co/api/v1",
+		"path_signin": "/signin",
+		"path_signup": "/signin/register",
+		"path_logout": "/logout",
+		"path_my_reservations": "/my-reservations",
+		"path_room_schedule": "/room-schedule",
+		"path_room_finder": "/room-finder"
+	}
+}

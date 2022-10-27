@@ -1,0 +1,130 @@
+stages:
+    - deploy
+    - upload-assets-to-cdn
+    - acceptance-test
+
+variables:
+    OWNER: cola-corp
+    PROJECT: cola-booking-frontend
+    AWS_REGION: $AWS_DEFAULT_REGION
+
+.deploy:
+    image: node:14.15.5-alpine3.13
+    stage: deploy
+    tags: #runners tag
+        - aws-octave
+    before_script:
+        - echo "Starting DEPLOY stage for $OWNER $PROJECT > $NODE_ENV"
+        - echo "Checking configuration & Building .env"
+        - touch .env
+        - echo "NODE_ENV=$TARGET_ENV" >> .env
+        - echo "VITE_ENV=$VITE_ENV" >> .env
+        - echo "PORT=$PORT" >> .env
+        - echo "AWS_PROFILE=$AWS_PROFILE" >> .env
+        - echo "AWS_REGION=$AWS_REGION" >> .env
+        - echo "VITE_BASE_URL=$VITE_BASE_URL" >> .env
+        - echo "VITE_CDN_BASE_URL=$VITE_CDN_BASE_URL" >> .env
+        - echo "VITE_API_URL=$VITE_API_URL" >> .env
+        - echo "VITE_SESSION_SECRET_1=$VITE_SESSION_SECRET_1" >> .env
+        #- cat .env
+        - echo "Building project with proper env configuration"
+        - npm install
+        - npm run build
+        - chmod +x ./scripts/before_deploy.sh
+        - ./scripts/before_deploy.sh
+    script:
+        - chmod +x ./scripts/deploy.sh
+        - ./scripts/deploy.sh
+
+deploy-development:
+    extends: .deploy
+    environment:
+        name: development
+        url: https://dev-cola-booking.octave.co
+    only:
+        refs:
+            - development
+    variables:
+        TARGET_ENV: development
+        SERVER: $DEVELOPMENT_SERVER_PRIVATE_IP
+        PROCESS_NAME: $TARGET_ENV-$OWNER-$PROJECT
+        DEPLOY_PATH: ~/$TARGET_ENV/$OWNER/$PROJECT
+        PORT: 3199
+        VITE_ENV: development
+        VITE_SESSION_SECRET_1: $DEVELOPMENT_SESSION_SECRET_1
+        AWS_PROFILE: default
+        VITE_BASE_URL: https://dev-cola-booking.octave.co
+        VITE_CDN_BASE_URL: https://staging-assets.octave.co/cola-booking
+        VITE_API_URL: https://dev-cola-booking-api.octave.co/api/v1
+
+deploy-production:
+    extends: .deploy
+    environment:
+        name: production
+        url: https://cola-booking.octave.co
+    only:
+        refs:
+            - main
+    variables:
+        TARGET_ENV: production
+        SERVER: $PRODUCTION_SERVER_PRIVATE_IP
+        PROCESS_NAME: $TARGET_ENV-$OWNER-$PROJECT
+        DEPLOY_PATH: ~/$TARGET_ENV/$OWNER/$PROJECT
+        PORT: 3199
+        VITE_ENV: production
+        VITE_SESSION_SECRET_1: $PRODUCTION_SESSION_SECRET_1
+        AWS_PROFILE: default
+        VITE_BASE_URL: https://cola-booking.octave.co
+        VITE_CDN_BASE_URL: https://assets.octave.co/cola-booking
+        VITE_API_URL: https://cola-booking-api.octave.co/api/v1
+
+.upload-assets-to-cdn:
+    image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+    stage: upload-assets-to-cdn
+    # --cache-control max-age=31536000 => 30 days
+    script:
+        - cd static
+        - aws s3 sync . s3://$S3_BUCKET$S3_PATH --acl public-read --delete --cache-control max-age=31536000
+
+upload-assets-to-cdn-development:
+    extends: .upload-assets-to-cdn
+    environment:
+        name: development
+    only:
+        refs:
+            - development
+    variables:
+        S3_BUCKET: staging-assets.octave.co
+        S3_PATH: /cola-booking
+
+upload-assets-to-cdn-production:
+    extends: .upload-assets-to-cdn
+    environment:
+        name: production
+    only:
+        refs:
+            - main
+    variables:
+        S3_BUCKET: assets.octave.co
+        S3_PATH: /cola-booking
+
+.acceptance:
+    image: cypress/browsers:node14.15.0-chrome86-ff82
+    stage: acceptance-test
+    script:
+        - npm install
+        - rm cypress.json
+        - cp $CONFIG_CYPRESS cypress.json
+        #- cat cypress.json
+        # Disabling cypress tests for the moment (few unstability between runs)
+        #- CYPRESS_ACCOUNT_DEFAULT_PASSWORD=$DEVELOPMENT_TEST_ACCOUNT_PASSWORD npm run cy:run
+
+acceptance-development:
+    extends: .acceptance
+    environment:
+        name: development
+    only:
+        refs:
+            - development
+    variables:
+        CONFIG_CYPRESS: cypress/_config/cypress.dev.json

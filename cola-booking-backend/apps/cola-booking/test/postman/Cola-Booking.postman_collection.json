@@ -1,0 +1,1117 @@
+{
+	"info": {
+		"_postman_id": "09d4f2c5-38d7-4378-a738-f13fc828cf5d",
+		"name": "Cola-Booking",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth | New signup",
+			"item": [
+				{
+					"name": "I signup for a new account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonRequest = JSON.parse(pm.request.body.raw);",
+									"",
+									"pm.test(\"L'utilisateur est créé.\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"// extracting & checking the JSON response body",
+									"var jsonResponse = pm.response.json();",
+									"pm.test(\"A new token is returned.\", function () {",
+									"    pm.expect(jsonResponse.token).to.be.not.null;",
+									"    pm.expect(jsonResponse.token_type).to.equal(\"bearer\");",
+									"});",
+									"pm.test(\"Account details are returned and match expectations\", function () {",
+									"    pm.expect(jsonResponse.account.id).to.be.not.null;",
+									"    pm.expect(jsonResponse.account.profile.email).to.equal(jsonRequest.email);",
+									"    pm.expect(jsonResponse.account.profile.firstName).to.equal(jsonRequest.firstName);",
+									"    pm.expect(jsonResponse.account.profile.lastName).to.equal(jsonRequest.lastName);",
+									"    pm.expect(jsonResponse.account.profile.jobPosition).to.equal(jsonRequest.jobPosition);",
+									"    pm.expect(jsonResponse.account.createdOn).to.be.not.null;",
+									"    pm.expect(jsonResponse.account.lastModifiedOn).to.be.not.null;",
+									"});",
+									"pm.test(\"Credentials are not returned with account details\", function () {",
+									"    pm.expect(jsonResponse.account.credentials).to.be.null;",
+									"});",
+									"",
+									"// we now set the current_user_* for the rest of the tests of this collection run",
+									"pm.collectionVariables.set(\"current_account_login\", jsonResponse.account.profile.email);",
+									"pm.collectionVariables.set(\"current_account_id\", jsonResponse.account.id);",
+									"pm.collectionVariables.set(\"current_token\", jsonResponse.token);",
+									"",
+									"console.log(pm.collectionVariables.values);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// each test has a unique ID based on immediate timestamp when this executes",
+									"pm.variables.set(\"test_id\", \"{{$timestamp}}\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"{{$randomFirstName}}\",\n\t\"lastName\": \"{{$randomLastName}}\",\n\t\"email\": \"{{$randomWord}}@coke.com\",\n\t\"password\": \"{{default_user_password}}\",\n    \"jobPosition\": \"{{$randomJobTitle}}\",\n\t\"hasAcceptedTerms\": true,\n\t\"hasConsentedDataProcessing\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base_url}}/auth/signup",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I must consent to legal terms of the service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonRequest = JSON.parse(pm.request.body.raw);",
+									"",
+									"pm.test(\"Signup is rejected\", function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"// extracting & checking the JSON response body",
+									"var jsonResponse = pm.response.json();",
+									"pm.test(\"Expected message is returned for field in error\", function () {",
+									"    pm.expect(jsonResponse.message[0]).to.contain(\"hasAcceptedTerms\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// each test has a unique ID based on immediate timestamp when this executes",
+									"pm.variables.set(\"test_id\", \"{{$timestamp}}\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"{{$randomFirstName}}\",\n\t\"lastName\": \"{{$randomLastName}}\",\n\t\"email\": \"{{randomWord}}@coke.com\",\n\t\"password\": \"{{default_user_password}}\",\n\t\"hasAcceptedTerms\": false,\n\t\"hasConsentedDataProcessing\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base_url}}/auth/signup",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I must consent to personal data processing (GDPR)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonRequest = JSON.parse(pm.request.body.raw);",
+									"",
+									"pm.test(\"Signup is rejected\", function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"// extracting & checking the JSON response body",
+									"var jsonResponse = pm.response.json();",
+									"pm.test(\"Expected message is returned for field in error\", function () {",
+									"    pm.expect(jsonResponse.message[0]).to.contain(\"hasConsentedDataProcessing\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// each test has a unique ID based on immediate timestamp when this executes",
+									"pm.variables.set(\"test_id\", \"{{$timestamp}}\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"{{$randomFirstName}}\",\n\t\"lastName\": \"{{$randomLastName}}\",\n\t\"email\": \"{{randomWord}}@coke.com\",\n\t\"password\": \"{{default_user_password}}\",\n\t\"hasAcceptedTerms\": true,\n\t\"hasConsentedDataProcessing\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base_url}}/auth/signup",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth | Connection",
+			"item": [
+				{
+					"name": "I perform a login attempt with wrong login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// make sure acces_token variable is cleared in running collection",
+									"pm.collectionVariables.set(\"current_token\", null);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login is rejected\", function () {",
+									"    pm.response.to.have.status(401);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// extracting & checking the JSON response body",
+									"var jsonBody = pm.response.json();",
+									"pm.test(\"Error message is returned AND is safe (no extra details)\", function () {",
+									"    pm.expect(jsonBody.error).to.equal(\"Unauthorized\");",
+									"    pm.expect(jsonBody.message).to.equal(\"Access denied\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"LOGIN_THAT_DOESNT_EXIST\",\n\t\"password\": \"{{default_user_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base_url}}/auth/login",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I perform a login attempt with wrong password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// make sure acces_token variable is cleared in running collection",
+									"pm.collectionVariables.set(\"current_access_token\", null);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login is rejected\", function () {",
+									"    pm.response.to.have.status(401);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// extracting & checking the JSON response body",
+									"var jsonBody = pm.response.json();",
+									"pm.test(\"Error message is returned AND is safe (no extra details)\", function () {",
+									"    pm.expect(jsonBody.error).to.equal(\"Unauthorized\");",
+									"    pm.expect(jsonBody.message).to.equal(\"Access denied\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"{{current_account_login}}\",\n\t\"password\": \"Wrong_Password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base_url}}/auth/login",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I have an account, I login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// make sure acces_token variable is cleared in running collection",
+									"pm.collectionVariables.set(\"current_access_token\", null);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"I get connected successfuly\", function () {",
+									"    pm.response.to.have.status(200);// étrange, ça devrait être 200 (sauf si on considère qu'on crée un token)",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// extracting & checking the JSON response body",
+									"var jsonResponse = pm.response.json();",
+									"pm.test(\"A token is returned\", function () {",
+									"    pm.expect(jsonResponse.token).to.be.not.null;",
+									"    pm.expect(jsonResponse.token_type).to.equal(\"bearer\");",
+									"});",
+									"pm.test(\"Account details are returned\", function () {",
+									"    pm.expect(jsonResponse.account.id).to.equal(",
+									"            pm.collectionVariables.get(\"current_account_id\")",
+									"        );",
+									"    pm.expect(jsonResponse.account.profile.email).to.equal(",
+									"            pm.collectionVariables.get(\"current_account_login\")",
+									"        );",
+									"    pm.expect(jsonResponse.account.profile.firstName).to.be.not.null;",
+									"    pm.expect(jsonResponse.account.profile.lastName).to.be.not.null;",
+									"});",
+									"",
+									"pm.test(\"Credentials are not part of the account details\", function() {",
+									"   pm.expect(jsonResponse.account.credentials).to.be.null; ",
+									"});",
+									"",
+									"// we now set the current_account_* for the rest of the tests of this collection run",
+									"pm.collectionVariables.set(\"current_account_login\", jsonResponse.account.profile.email);",
+									"pm.collectionVariables.set(\"current_account_id\", jsonResponse.account.id);",
+									"pm.collectionVariables.set(\"current_token\", jsonResponse.token);",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"{{current_account_login}}\",\n\t\"password\": \"{{default_user_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base_url}}/auth/login",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{api_base_url}}/auth/logout",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Account | Management",
+			"item": [
+				{
+					"name": "Account | Get Mine",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_base_url}}/accounts/mine",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"accounts",
+								"mine"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company",
+			"item": [
+				{
+					"name": "I list all active companies",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Company list is returned\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// extracting & checking the JSON response body",
+									"var jsonBody = pm.response.json();",
+									"",
+									"pm.test(\"Only active companies are returned.\", function() {",
+									"    // active status = 1",
+									"    pm.expect(jsonBody).to.be.an(\"array\").that.is.not.empty;",
+									"    for (i = 0; i < jsonBody.length; i++) { ",
+									"        pm.expect(jsonBody[i]).to.deep.include({",
+									"            status: 1",
+									"        });",
+									"    }",
+									"    ",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_base_url}}/companies",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"companies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I get one company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonRequest = JSON.parse(pm.request.body.raw);",
+									"",
+									"pm.test(\"Company is returned.\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"// extracting & checking the JSON response body",
+									"var jsonResponse = pm.response.json();",
+									"",
+									"pm.test(\"Company details are returned and match expectations\", function () {",
+									"    var expectedId = pm.collectionVariables.get(\"current_company_id\");",
+									"    pm.expect(jsonResponse.id).to.equal(expectedId);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_base_url}}/companies/{{current_company_id}}",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{current_company_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Room",
+			"item": [
+				{
+					"name": "I list all active rooms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Room list is returned\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// extracting & checking the JSON response body",
+									"var jsonBody = pm.response.json();",
+									"",
+									"pm.test(\"Only active roooms are returned.\", function() {",
+									"    // active status = 1",
+									"    pm.expect(jsonBody).to.be.an(\"array\").that.is.not.empty;",
+									"    for (i = 0; i < jsonBody.length; i++) { ",
+									"        pm.expect(jsonBody[i]).to.deep.include({",
+									"            status: 1",
+									"        });",
+									"    }",
+									"    ",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_base_url}}/rooms",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"rooms"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "I get one room",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonRequest = JSON.parse(pm.request.body.raw);",
+									"",
+									"pm.test(\"Room is returned.\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"// extracting & checking the JSON response body",
+									"var jsonResponse = pm.response.json();",
+									"",
+									"pm.test(\"Room details are returned and match expectations\", function () {",
+									"    var expectedId = pm.collectionVariables.get(\"current_room_id\");",
+									"    pm.expect(jsonResponse.id).to.equal(expectedId);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_base_url}}/companies/{{current_room_id}}",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{current_room_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reservation",
+			"item": [
+				{
+					"name": "I book a new reservation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": null
+					},
+					"response": []
+				},
+				{
+					"name": "I cancel my reservation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": null
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Zone",
+			"item": [
+				{
+					"name": "Company | Management",
+					"item": [
+						{
+							"name": "I login with an admin account",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// make sure acces_token variable is cleared in running collection",
+											"pm.collectionVariables.set(\"current_access_token\", null);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"I get connected successfuly\", function () {",
+											"    pm.response.to.have.status(200);// étrange, ça devrait être 200 (sauf si on considère qu'on crée un token)",
+											"    pm.response.to.be.withBody;",
+											"    pm.response.to.be.json;",
+											"});",
+											"",
+											"// extracting & checking the JSON response body",
+											"var jsonResponse = pm.response.json();",
+											"pm.test(\"A token is returned\", function () {",
+											"    pm.expect(jsonResponse.token).to.be.not.null;",
+											"    pm.expect(jsonResponse.token_type).to.equal(\"bearer\");",
+											"});",
+											"",
+											"// we now set the current_account_* for the rest of the tests of this collection run",
+											"pm.collectionVariables.set(\"current_account_login\", jsonResponse.account.profile.email);",
+											"pm.collectionVariables.set(\"current_account_id\", jsonResponse.account.id);",
+											"pm.collectionVariables.set(\"current_token\", jsonResponse.token);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"email\": \"{{admin_user_login}}\",\n\t\"password\": \"{{default_user_password}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{api_base_url}}/auth/login",
+									"host": [
+										"{{api_base_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "I create a new company",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonRequest = JSON.parse(pm.request.body.raw);",
+											"",
+											"pm.test(\"Company is created.\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    pm.response.to.be.withBody;",
+											"    pm.response.to.be.json;",
+											"});",
+											"// extracting & checking the JSON response body",
+											"var jsonResponse = pm.response.json();",
+											"",
+											"pm.test(\"Company details are returned and match expectations\", function () {",
+											"    pm.expect(jsonResponse.id).to.be.not.null;",
+											"    pm.expect(jsonResponse.name).to.equal(jsonRequest.name);",
+											"    pm.expect(jsonResponse.createdOn).to.be.not.null;",
+											"    pm.expect(jsonResponse.lastModifiedOn).to.be.not.null;",
+											"});",
+											"",
+											"// we now set the current_company_* for the rest of the tests of this collection run",
+											"pm.collectionVariables.set(\"current_company_id\", jsonResponse.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Pepsi\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{api_base_url}}/companies",
+									"host": [
+										"{{api_base_url}}"
+									],
+									"path": [
+										"companies"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "I update a company",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonRequest = JSON.parse(pm.request.body.raw);",
+											"",
+											"pm.test(\"Company is created.\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    pm.response.to.be.withBody;",
+											"    pm.response.to.be.json;",
+											"});",
+											"// extracting & checking the JSON response body",
+											"var jsonResponse = pm.response.json();",
+											"",
+											"pm.test(\"Company details are returned and match expectations\", function () {",
+											"    pm.expect(jsonResponse.name).to.equal(jsonRequest.name);",
+											"    pm.expect(jsonResponse.lastModifiedOn).to.be.not.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Pepsi & Tropicana\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{api_base_url}}/companies/{{current_company_id}}",
+									"host": [
+										"{{api_base_url}}"
+									],
+									"path": [
+										"companies",
+										"{{current_company_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Room | Management",
+					"item": [
+						{
+							"name": "I login with an admin account",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// make sure acces_token variable is cleared in running collection",
+											"pm.collectionVariables.set(\"current_access_token\", null);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"I get connected successfuly\", function () {",
+											"    pm.response.to.have.status(200);// étrange, ça devrait être 200 (sauf si on considère qu'on crée un token)",
+											"    pm.response.to.be.withBody;",
+											"    pm.response.to.be.json;",
+											"});",
+											"",
+											"// extracting & checking the JSON response body",
+											"var jsonResponse = pm.response.json();",
+											"pm.test(\"A token is returned\", function () {",
+											"    pm.expect(jsonResponse.token).to.be.not.null;",
+											"    pm.expect(jsonResponse.token_type).to.equal(\"bearer\");",
+											"});",
+											"",
+											"// we now set the current_account_* for the rest of the tests of this collection run",
+											"pm.collectionVariables.set(\"current_account_login\", jsonResponse.account.profile.email);",
+											"pm.collectionVariables.set(\"current_account_id\", jsonResponse.account.id);",
+											"pm.collectionVariables.set(\"current_token\", jsonResponse.token);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"email\": \"{{admin_user_login}}\",\n\t\"password\": \"{{default_user_password}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{api_base_url}}/auth/login",
+									"host": [
+										"{{api_base_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "I create a new room",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonRequest = JSON.parse(pm.request.body.raw);",
+											"",
+											"pm.test(\"Company is created.\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    pm.response.to.be.withBody;",
+											"    pm.response.to.be.json;",
+											"});",
+											"// extracting & checking the JSON response body",
+											"var jsonResponse = pm.response.json();",
+											"",
+											"pm.test(\"Company details are returned and match expectations\", function () {",
+											"    pm.expect(jsonResponse.id).to.be.not.null;",
+											"    pm.expect(jsonResponse.name).to.equal(jsonRequest.name);",
+											"    pm.expect(jsonResponse.createdOn).to.be.not.null;",
+											"    pm.expect(jsonResponse.lastModifiedOn).to.be.not.null;",
+											"});",
+											"",
+											"// we now set the current_company_* for the rest of the tests of this collection run",
+											"pm.collectionVariables.set(\"current_company_id\", jsonResponse.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"floor\": \"4\",\n    \"companyId\": \"01a233e2-81db-4410-8878-4facdd4977e9\"\n\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{api_base_url}}/rooms",
+									"host": [
+										"{{api_base_url}}"
+									],
+									"path": [
+										"rooms"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "I update a company",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonRequest = JSON.parse(pm.request.body.raw);",
+											"",
+											"pm.test(\"Company is created.\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    pm.response.to.be.withBody;",
+											"    pm.response.to.be.json;",
+											"});",
+											"// extracting & checking the JSON response body",
+											"var jsonResponse = pm.response.json();",
+											"",
+											"pm.test(\"Company details are returned and match expectations\", function () {",
+											"    pm.expect(jsonResponse.name).to.equal(jsonRequest.name);",
+											"    pm.expect(jsonResponse.lastModifiedOn).to.be.not.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Pepsi & Tropicana\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{api_base_url}}/companies/{{current_company_id}}",
+									"host": [
+										"{{api_base_url}}"
+									],
+									"path": [
+										"companies",
+										"{{current_company_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{current_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "current_account_login",
+			"value": ""
+		},
+		{
+			"key": "current_account_id",
+			"value": ""
+		},
+		{
+			"key": "current_token",
+			"value": ""
+		},
+		{
+			"key": "current_access_token",
+			"value": ""
+		},
+		{
+			"key": "current_company_id",
+			"value": ""
+		}
+	]
+}

@@ -1,0 +1,67 @@
+[
+	{
+		"key": "admin",
+		"account": {
+			"company": "Coke",
+			"profile": {
+				"gender": "Not Mentioned",
+				"lastName": "Runolfsdottir",
+				"firstName": "Kolby",
+				"email": "admin@colacorp.com",
+				"jobPosition": "Dynamic Branding Assistant"
+			}
+		}
+	},
+	{
+		"key": "employeea-coke",
+		"account": {
+			"company": "Coke",
+			"profile": {
+				"gender": "Not Mentioned",
+				"lastName": "Langworth",
+				"firstName": "Vinnie",
+				"email": "employee_a@coke.com",
+				"jobPosition": "Investor Brand Strategist"
+			}
+		}
+	},
+	{
+		"key": "employeeb-coke",
+		"account": {
+			"company": "Coke",
+			"profile": {
+				"gender": "Not Mentioned",
+				"lastName": "Connelly",
+				"firstName": "Harmony",
+				"email": "employee_b@coke.com",
+				"jobPosition": "Legacy Applications Facilitator"
+			}
+		}
+	},
+	{
+		"key": "employeea-pepsi",
+		"account": {
+			"company": "Pepsi",
+			"profile": {
+				"gender": "Not Mentioned",
+				"lastName": "Homenick",
+				"firstName": "Barry",
+				"email": "employee_a@pepsi.com",
+				"jobPosition": "Dynamic Security Liaison"
+			}
+		}
+	},
+	{
+		"key": "employeeb-pepsi",
+		"account": {
+			"company": "Pepsi",
+			"profile": {
+				"gender": "Not Mentioned",
+				"lastName": "Moore",
+				"firstName": "Angus",
+				"email": "employee_b@pepsi.com",
+				"jobPosition": "Dynamic Markets Liaison"
+			}
+		}
+	}
+]

@@ -1,0 +1,167 @@
+/*
+### 
+COLA SPECIFIC STYLES
+###
+*/
+
+/* ####  COLA fonts  #### */
+
+@font-face {
+	font-family: "Marianne-Regular";
+	src: url("/fonts/Marianne-Regular.woff2") format("woff2"),
+		url("/fonts/Marianne-Regular.woff") format("woff");
+}
+@font-face {
+	font-family: "Marianne-Medium";
+	src: url("/fonts/Marianne-Medium.woff2") format("woff2"),
+		url("/fonts/Marianne-Medium.woff") format("woff");
+}
+@font-face {
+	font-family: "Marianne-Bold";
+	src: url("/fonts/Marianne-Bold.woff2") format("woff2"),
+		url("/fonts/Marianne-Bold.woff") format("woff");
+}
+
+.marianne-regular {
+	font-family: "Marianne-Regular";
+}
+
+.marianne-medium {
+	font-family: "Marianne-Medium";
+}
+
+.marianne-bold {
+	font-family: "Marianne-Bold";
+}
+
+body {
+	/*font-family: Arial, Helvetica, sans-serif;*/
+	/*font-family: Marianne-Regular;*/
+	color: black;
+}
+
+/*  COLA specific classes */
+
+.bg-cola-grey {
+	background-color: #fcfcfc;
+}
+
+.bg-cola-grey-actions {
+	background-color: #4e596f;
+}
+
+.bg-cola-active-filter {
+	background-color: #e9eaec;
+}
+
+.cola-grey-actions {
+	color: #4e596f;
+}
+
+.bg-cola-blue {
+	background-color: rgb(84, 161, 197);
+}
+
+.shadow-cola-block {
+	box-shadow: 0 2px 10px 0 rgba(93, 119, 255, 0.1);
+}
+
+.shadow-cola-menu {
+	box-shadow: 0 5px 10px 0 rgba(93, 119, 255, 0.2);
+}
+
+.bb-cola-hr {
+	border-bottom-style: solid;
+	border-bottom-width: 0.5px;
+	border-bottom-color: #e3e4e6;
+}
+
+.bt-cola-hr {
+	border-top-style: solid;
+	border-top-width: 0.5px;
+	border-top-color: #e3e4e6;
+}
+
+.green-cola {
+	color: #3aa015;
+}
+
+.orange-cola {
+	color: #ff7400;
+}
+
+.red-cola {
+	color: #ff0000;
+}
+
+.blue-cola{
+	color: rgb(84, 161, 197)
+}
+
+.b--coke{
+	border-color: #CC0707;
+}
+
+.b--pepsi{
+	border-color: #0E41A6;
+}
+
+.bg-coke{
+	background-color: #CC0707;
+}
+
+.bg-pepsi{
+	background-color: #0E41A6;
+}
+
+
+
+.f3-cola {
+	font-size: 1.625rem;
+}
+
+.btn-primary {
+	border-radius: 4px;
+	background: rgb(84, 161, 197);
+	border: 1px solid rgb(84, 161, 197);
+	color: white;
+}
+
+.btn-primary-outlined {
+	border-radius: 4px;
+	background: transparent;
+	border: 1px solid rgb(84, 161, 197);
+	color: rgb(84, 161, 197);
+}
+
+input,
+select {
+	width: 100%;
+	background-color: white;
+	color: black;
+	padding: 0.5rem 1rem;
+	border: 1px solid black;
+	transition: 0.3s border ease;
+	border-radius: 4px;
+}
+
+input:focus {
+	border: 1px solid green;
+	transition: 0.3s border ease;
+}
+.error-input {
+	border: 1px solid red;
+	transition: 0.3s border ease;
+}
+.valid-input {
+	border: 1px solid green;
+	transition: 0.3s border ease;
+}
+
+input {
+	height: 3rem;
+}
+
+.radio {
+	height: 1rem;
+}

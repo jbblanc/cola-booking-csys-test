@@ -1,0 +1,16 @@
+.vs
+.DS_Store
+node_modules
+*/.svelte-kit/*
+*/build/*
+*/functions/*
+*/.env
+*/*.local
+*/cypress/videos/*
+*/cypress/screenshots/*
+.idea
+.sessions
+.svelte-kit
+build
+.env
+package-lock.json
